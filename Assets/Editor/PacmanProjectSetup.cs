@@ -1,5 +1,6 @@
 using System.IO;
 using UnityEditor;
+using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -14,6 +15,37 @@ public static class PacmanProjectSetup
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         Debug.Log("[MazeChaseSetup] Setup complete!");
+    }
+
+    [MenuItem("MazeChase/Build Android APK")]
+    public static void BuildAndroidApk()
+    {
+        EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
+        ConfigurePlayerSettings();
+        Directory.CreateDirectory("Releases");
+
+        EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
+        EditorUserBuildSettings.buildAppBundle = false;
+        string apkPath = Path.GetFullPath("Releases/MazeChase3D.apk");
+
+        BuildPlayerOptions options = new BuildPlayerOptions
+        {
+            scenes = new[] { "Assets/Scenes/Main.unity" },
+            locationPathName = apkPath,
+            targetGroup = BuildTargetGroup.Android,
+            target = BuildTarget.Android,
+            options = BuildOptions.None
+        };
+
+        BuildReport report = BuildPipeline.BuildPlayer(options);
+        if (report.summary.result != BuildResult.Succeeded)
+        {
+            Debug.LogError($"[MazeChaseSetup] Android APK build failed: {report.summary.result}");
+            if (Application.isBatchMode) EditorApplication.Exit(1);
+            return;
+        }
+
+        Debug.Log($"[MazeChaseSetup] Android APK built: {report.summary.outputPath} ({report.summary.totalSize} bytes)");
     }
 
     private static void BuildMainScene()

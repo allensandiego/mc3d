@@ -33,6 +33,7 @@
 
 # Builds & OS files
 *.apk
+!Releases/*.apk
 *.aab
 *.unitypackage
 *.app
